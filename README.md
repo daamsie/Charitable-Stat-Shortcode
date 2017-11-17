@@ -36,10 +36,10 @@ After installing and activating this plugin, you can use the `[charitable_stat]`
 
 **Show number of donors to a set of campaigns**
 ```
-[charitable_stat campaign=id1,id2,id3 display=donors]
+[charitable_stat campaigns=id1,id2,id3 display=donors]
 ```
 
 **Show number of donations for a set of campaigns**
 ```
-[charitable_stat campaign=id1,id2,id3 display=donations]
+[charitable_stat campaigns=id1,id2,id3 display=donations]
 ```
