@@ -51,10 +51,6 @@ if ( ! class_exists( 'Charitable_Stat_Query' ) ) :
             $this->type  = $type;
             $this->args  = $this->parse_args( $args );
             $this->query = $this->generate_query();
-
-            echo '<pre>';
-            var_dump( $this->query );
-            echo '</pre>';
         }
 
         /**
