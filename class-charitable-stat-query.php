@@ -14,168 +14,180 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 if ( ! class_exists( 'Charitable_Stat_Query' ) ) :
 
-    /**
-     * Charitable_Stat_Query
-     *
-     * @since 1.0.0
-     */
-    class Charitable_Stat_Query {
+	/**
+	 * Charitable_Stat_Query
+	 *
+	 * @since 1.0.0
+	 */
+	class Charitable_Stat_Query {
 
-        /**
-         * The type of query.
-         *
-         * @since 1.0.0
-         *
-         * @var   string
-         */
-        private $type;
+		/**
+		 * The type of query.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @var   string
+		 */
+		private $type;
 
-        /**
-         * Mixed set of arguments for the query.
-         *
-         * @since 1.0.0
-         *
-         * @var   array
-         */
-        private $args;
+		/**
+		 * Mixed set of arguments for the query.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @var   array
+		 */
+		private $args;
 
-        /**
-         * Create class object.
-         *
-         * @since 1.0.0
-         *
-         * @param string $type The type of query we are executing.
-         * @param array  $args Mixed set of arguments for the query.
-         */
-        public function __construct( $type, $args ) {
-            $this->type  = $type;
-            $this->args  = $this->parse_args( $args );
-            $this->query = $this->generate_query();
-        }
+		/**
+		 * Create class object.
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param string $type The type of query we are executing.
+		 * @param array  $args Mixed set of arguments for the query.
+		 */
+		public function __construct( $type, $args ) {
+			$this->type  = $type;
+			$this->args  = $this->parse_args( $args );
+			$this->query = $this->generate_query();
+		}
 
-        /**
-         * Return the result of the query.
-         *
-         * @since  1.0.0
-         *
-         * @return string
-         */
-        public function __toString() {
-            return $this->get_query_result();
-        }
+		/**
+		 * Return the result of the query.
+		 *
+		 * @since  1.0.0
+		 *
+		 * @return string
+		 */
+		public function __toString() {
+			return $this->get_query_result();
+		}
 
-        /**
-         * Return the query result.
-         *
-         * @since  1.0.0
-         *
-         * @return string
-         */
-        public function get_query_result() {
-            switch ( $this->type ) {
-                case 'total' : 
-                    return charitable_format_money( $this->query );
+		/**
+		 * Return the query result.
+		 *
+		 * @since  1.0.0
+		 *
+		 * @return string
+		 */
+		public function get_query_result() {
+			switch ( $this->type ) {
+				case 'progress' :
+					$total = $this->query;
 
-                case 'donors' :
-                case 'donations' : 
-                    return (string) $this->query->count();
-            }
-        }
+					if ( ! $this->args['goal'] ) {
+						return charitable_format_money( $total );
+					}
 
-        /**
-         * Parse arguments.
-         *
-         * @since  1.0.0
-         *
-         * @param  array $args User defined arguments.
-         * @return array
-         */
-        private function parse_args( $args ) {
-            $defaults = array(
-                'display'   => 'total',
-                'campaigns' => array(),
-                'status'    => array( 'charitable-completed', 'charitable-preapproved' ),
-            );
+					$percent = ( $total / $this->args['goal'] ) * 100;
 
-            $args = array_merge( $defaults, $args );
+					return '<div class="campaign-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' . $percent . '"><span class="bar" style="width:' . $percent . '%;"></span></div>';
 
-            if ( ! is_array( $args['campaigns'] ) ) {
-                $args['campaigns'] = array();
-            } else {
-                $args['campaigns'] = array_filter( $args['campaigns'], 'intval' );
-            }
+				case 'total' :
+					return charitable_format_money( $this->query );
 
-            return $args;
-        }
+				case 'donors' :
+				case 'donations' :
+					return (string) $this->query->count();
+			}
+		}
 
-        /**
-         * Generates the appropriate query.
-         *
-         * @since  1.0.0
-         *
-         * @return mixed
-         */
-        private function generate_query() {
-            switch ( $this->type ) {
-                case 'total' : 
-                    return $this->generate_total_query();
+		/**
+		 * Parse arguments.
+		 *
+		 * @since  1.0.0
+		 *
+		 * @param  array $args User defined arguments.
+		 * @return array
+		 */
+		private function parse_args( $args ) {
+			$defaults = array(
+				'display'   => 'total',
+				'campaigns' => array(),
+				'status'    => array( 'charitable-completed', 'charitable-preapproved' ),
+			);
 
-                case 'donors' :
-                    return $this->generate_donor_query();
+			$args = array_merge( $defaults, $args );
 
-                case 'donations' : 
-                    return $this->generate_donation_query();
-            }
-        }
+			if ( ! is_array( $args['campaigns'] ) ) {
+				$args['campaigns'] = array();
+			} else {
+				$args['campaigns'] = array_filter( $args['campaigns'], 'intval' );
+			}
 
-        /**
-         * Generate a total query type.
-         *
-         * @since  1.0.0
-         *
-         * @return ?
-         */
-        private function generate_total_query() {
-            if ( empty( $this->args['campaigns'] ) ) {
-                return charitable_get_table( 'campaign_donations' )->get_total();
-            }
+			return $args;
+		}
 
-            return charitable_get_table( 'campaign_donations' )->get_campaign_donated_amount( $this->args['campaigns'] );
-        }
+		/**
+		 * Generates the appropriate query.
+		 *
+		 * @since  1.0.0
+		 *
+		 * @return mixed
+		 */
+		private function generate_query() {
+			switch ( $this->type ) {
+				case 'progress' :
+				case 'total' :
+					return $this->generate_total_query();
 
-        /**
-         * Generate a donations query type.
-         *
-         * @since  1.0.0
-         *
-         * @return ?
-         */
-        private function generate_donation_query() {
-            $query_args = array(
-                'output'   => 'count',
-                'campaign' => $this->args['campaigns'],
-                'status'   => $this->args['status'],
-            );
+				case 'donors' :
+					return $this->generate_donor_query();
 
-            return new Charitable_Donations_Query( $query_args );        
-        }
+				case 'donations' :
+					return $this->generate_donation_query();
+			}
+		}
 
-        /**
-         * Generate a donors query type.
-         *
-         * @since  1.0.0
-         *
-         * @return Charitable_Donor_Query
-         */
-        private function generate_donor_query() {
-            $query_args = array(
-                'output'   => 'count',
-                'campaign' => $this->args['campaigns'],
-                'status'   => $this->args['status'],
-            );
+		/**
+		 * Generate a total query type.
+		 *
+		 * @since  1.0.0
+		 *
+		 * @return ?
+		 */
+		private function generate_total_query() {
+			if ( empty( $this->args['campaigns'] ) ) {
+				return charitable_get_table( 'campaign_donations' )->get_total();
+			}
 
-            return new Charitable_Donor_Query( $query_args );
-        }
-    }
+			return charitable_get_table( 'campaign_donations' )->get_campaign_donated_amount( $this->args['campaigns'] );
+		}
+
+		/**
+		 * Generate a donations query type.
+		 *
+		 * @since  1.0.0
+		 *
+		 * @return ?
+		 */
+		private function generate_donation_query() {
+			$query_args = array(
+				'output'   => 'count',
+				'campaign' => $this->args['campaigns'],
+				'status'   => $this->args['status'],
+			);
+
+			return new Charitable_Donations_Query( $query_args );        
+		}
+
+		/**
+		 * Generate a donors query type.
+		 *
+		 * @since  1.0.0
+		 *
+		 * @return Charitable_Donor_Query
+		 */
+		private function generate_donor_query() {
+			$query_args = array(
+				'output'   => 'count',
+				'campaign' => $this->args['campaigns'],
+				'status'   => $this->args['status'],
+			);
+
+			return new Charitable_Donor_Query( $query_args );
+		}
+	}
 
 endif;

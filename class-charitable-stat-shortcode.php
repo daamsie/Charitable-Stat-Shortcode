@@ -14,29 +14,30 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 if ( ! class_exists( 'Charitable_Stat_Shortcode' ) ) :
 
-    /**
-     * Charitable_Stat_Shortcode
-     *
-     * @since 1.0.0
-     */
-    class Charitable_Stat_Shortcode {
+	/**
+	 * Charitable_Stat_Shortcode
+	 *
+	 * @since 1.0.0
+	 */
+	class Charitable_Stat_Shortcode {
 
-        /**
-         * Create class object.
-         *
-         * @since 1.0.0
-         */
-        public static function display( $atts ) {
-            $defaults = array(
-                'display'   => 'total',
-                'campaigns' => '',
-            );
+		/**
+		 * Create class object.
+		 *
+		 * @since 1.0.0
+		 */
+		public static function display( $atts ) {
+			$defaults = array(
+				'display'   => 'total',
+				'campaigns' => '',
+				'goal'      => false,
+			);
 
-            $args              = shortcode_atts( $defaults, $atts, 'charitable_stat' );
-            $args['campaigns'] = strlen( $args['campaigns'] ) ? explode( ',', $args['campaigns'] ) : array();
+			$args              = shortcode_atts( $defaults, $atts, 'charitable_stat' );
+			$args['campaigns'] = strlen( $args['campaigns'] ) ? explode( ',', $args['campaigns'] ) : array();
 
-            return new Charitable_Stat_Query( $args['display'], $args );
-        }
-    }
+			return new Charitable_Stat_Query( $args['display'], $args );
+		}
+	}
 
 endif;
