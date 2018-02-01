@@ -29,7 +29,7 @@ After installing and activating this plugin, you can use the `[charitable_stat]`
 [charitable_stat display=progress goal=100000]
 ```
 
-*Note: the `goal` parameter is required.
+*Note: the `goal` parameter is required.*
 
 **Show total $ raised in a specific campaign**
 ```
@@ -56,4 +56,4 @@ After installing and activating this plugin, you can use the `[charitable_stat]`
 [charitable_stat display=progress goal=100000 campaigns=id]
 ```
 
-*Note: the `goal` parameter is required.
+*Note: the `goal` parameter is required.*
