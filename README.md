@@ -24,6 +24,13 @@ After installing and activating this plugin, you can use the `[charitable_stat]`
 [charitable_stat display=donations]
 ```
 
+**Show total $ raised by all campaigns as a progress bar**
+```
+[charitable_stat display=progress goal=100000]
+```
+
+*Note: the `goal` parameter is required.
+
 **Show total $ raised in a specific campaign**
 ```
 [charitable_stat campaigns=id]
@@ -43,3 +50,10 @@ After installing and activating this plugin, you can use the `[charitable_stat]`
 ```
 [charitable_stat campaigns=id1,id2,id3 display=donations]
 ```
+
+**Show total $ raised by a campaign as a progress bar**
+```
+[charitable_stat display=progress goal=100000 campaigns=id]
+```
+
+*Note: the `goal` parameter is required.
