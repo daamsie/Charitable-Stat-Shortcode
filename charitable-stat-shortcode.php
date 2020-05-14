@@ -1,13 +1,15 @@
 <?php
+namespace CharitableStatShortcodePlugin;
+
 /**
  * Plugin Name:       Charitable - Stat Shortcode
- * Plugin URI:
- * Description:
- * Version:           1.0.1
+ * Plugin URI:        https://github.com/Charitable/Charitable-Stat-Shortcode
+ * Description:       The [charitable_stat] shortcode, with extra features.
+ * Version:           1.1.0
  * Author:            WP Charitable
  * Author URI:        https://www.wpcharitable.com
  * Requires at least: 4.2
- * Tested up to:      4.9
+ * Tested up to:      5.4.1
  *
  * Text Domain:       charitable-stat-shortcode
  * Domain Path:       /languages/
@@ -25,13 +27,12 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  *
  * @return false|Charitable_Stat_Shortcode Whether the class was loaded.
  */
-function charitable_stat_shortcode_load() {	
+add_action( 'plugins_loaded', function() {
 	if ( class_exists( 'Charitable' ) ) {
-		require_once( 'class-charitable-stat-query.php' );
+		require_once( 'class-charitable-donation-report.php' );
 		require_once( 'class-charitable-stat-shortcode.php' );
 
-		add_shortcode( 'charitable_stat', array( 'Charitable_Stat_Shortcode', 'display' ) );
+		remove_shortcode( 'charitable_stat', array( 'Charitable_Stat_Shortcode', 'display' ) );
+		add_shortcode( 'charitable_stat', array( __NAMESPACE__ . '\Charitable_Stat_Shortcode', 'display' ) );
 	}
-}
-
-add_action( 'plugins_loaded', 'charitable_stat_shortcode_load', 1 );
+}, 1 );

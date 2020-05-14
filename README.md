@@ -1,59 +1,41 @@
 # Charitable Stat Shortcode
-Adds a [charitable_stat] shortcode to Charitable.
+The `[charitable_stat]` shortcode is now available in Charitable core.
+
+Installing this plugin will give you access to some new features, not currently available with Charitable.
 
 ## Usage
 After installing and activating this plugin, you can use the `[charitable_stat]` shortcode.
 
-**Default. Show total $ raised in all campaigns**
+For usage available with the existing integration in Charitable core, see [https://www.wpcharitable.com/documentation/stats-shortcode/](the documentation).
+
+Below we outline the additional parameters available with this plugin.
+
+**Show total raised in a category**
 ```
-[charitable_stat]
+[charitable_stat category=my-category] // Refer to category by slug
 ```
 
-**Same as default. Shows total $ raised in all campaigns**
+**Show total raised in a tag**
 ```
-[charitable_stat display=total]
-```
-
-**Show total number of donors in all campaigns**
-```
-[charitable_stat display=donors]
+[charitable_stat category=my-tag] // Refer to tag by slug
 ```
 
-**Show total number of donations in all campaigns**
+**Show total raised in a couple of categories**
 ```
-[charitable_stat display=donations]
-```
-
-**Show total $ raised by all campaigns as a progress bar**
-```
-[charitable_stat display=progress goal=100000]
+[charitable_stat category=my-category,my-other-category] // Refer to tag by slug
 ```
 
-*Note: the `goal` parameter is required.*
-
-**Show total $ raised in a specific campaign**
+**Default: Show total raised by a campaign and its child campaigns**
 ```
-[charitable_stat campaigns=id]
+[charitable_stat campaigns=123]
 ```
 
-**Show total $ raised in a set of campaigns**
+**Default: Only show total raised by campaign itself (don't include child campaigns)**
 ```
-[charitable_stat campaigns=id1,id2,id3]
-```
-
-**Show number of donors to a set of campaigns**
-```
-[charitable_stat campaigns=id1,id2,id3 display=donors]
+[charitable_stat campaigns=123 include_children=0]
 ```
 
-**Show number of donations for a set of campaigns**
+**Default: Show total raised by campaign itself (explictly include child campaigns)**
 ```
-[charitable_stat campaigns=id1,id2,id3 display=donations]
+[charitable_stat campaigns=123 include_children=1]
 ```
-
-**Show total $ raised by a campaign as a progress bar**
-```
-[charitable_stat display=progress goal=100000 campaigns=id]
-```
-
-*Note: the `goal` parameter is required.*
