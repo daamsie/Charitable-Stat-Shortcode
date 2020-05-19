@@ -17,7 +17,7 @@ Below we outline the additional parameters available with this plugin.
 
 **Show total raised in a tag**
 ```
-[charitable_stat category=my-tag] // Refer to tag by slug
+[charitable_stat tag=my-tag] // Refer to tag by slug
 ```
 
 **Show total raised in a couple of categories**

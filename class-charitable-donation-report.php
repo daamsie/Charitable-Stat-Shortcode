@@ -157,7 +157,7 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 		 * @return int
 		 */
 		private function run_donation_query() {
-			$query = new Charitable_Donations_Query(
+			$query = new \Charitable_Donations_Query(
 				array(
 					'output'   => 'count',
 					'campaign' => $this->args['campaigns'],
@@ -176,7 +176,7 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 		 * @return int
 		 */
 		private function run_donor_query() {
-			$query = new Charitable_Donor_Query(
+			$query = new \Charitable_Donor_Query(
 				array(
 					'output'   => 'count',
 					'campaign' => $this->args['campaigns'],
@@ -255,6 +255,10 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 				$query_args['post_parent__in'] = $campaigns;
 
 				unset( $query_args['post__in'] );
+			}
+
+			if ( 2 === count( $query_args['tax_query'] ) ) {
+				$query_args['tax_query']['relation'] = 'OR';
 			}
 
 			if ( empty( $campaigns ) && empty( $query_args['tax_query'] ) && ! $args['include_children'] ) {
