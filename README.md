@@ -24,7 +24,7 @@ Extra parameters added by this plugin are highlighted in bold.
 - **`category`: Filter to only show stats for campaigns in a specific category, identified by slug. Include multiple categories with a comma-separated list.**
 - **`tag`: Filter to only show stats for campaigns with a specific tag, identified by slug. Include multiple tags with a comma-separated list.**
 - **`tag`: Filter to only show stats for campaigns of a specific type, identified by slug. Options include `admin`, `fundraiser`, `personal-cause`, `individual`, `team` or `team-member`. Include multiple types with a comma-separated list.**
-- **`include_children`: Whether to include stats for the campaigns listed in `campaigns` _and_ any child campaigns. Set to `true` to include child campaigns. Set to `false` to exclude child campaigns. Defaults to `true`. 
+- **`include_children`: Whether to include stats for the campaigns listed in `campaigns` _and_ any child campaigns. Set to `true` to include child campaigns. Set to `false` to exclude child campaigns. Defaults to `true`.**
 
 ### Examples
 
