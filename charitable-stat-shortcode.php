@@ -5,11 +5,11 @@ namespace CharitableStatShortcodePlugin;
  * Plugin Name:       Charitable - Stat Shortcode
  * Plugin URI:        https://github.com/Charitable/Charitable-Stat-Shortcode
  * Description:       The [charitable_stat] shortcode, with extra features.
- * Version:           1.1.0
+ * Version:           1.2.0
  * Author:            WP Charitable
  * Author URI:        https://www.wpcharitable.com
  * Requires at least: 4.2
- * Tested up to:      5.4.1
+ * Tested up to:      5.9.1
  *
  * Text Domain:       charitable-stat-shortcode
  * Domain Path:       /languages/
