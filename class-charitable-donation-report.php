@@ -9,7 +9,7 @@ namespace CharitableStatShortcodePlugin;
  * @copyright Copyright (c) 2020, Studio 164a
  * @license   http://opensource.org/licenses/gpl-2.0.php GNU Public License
  * @since     1.6.0
- * @version   1.6.0
+ * @version   1.7.0
  */
 
 // Exit if accessed directly.
@@ -46,6 +46,7 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 			'amount',
 			'donations',
 			'donors',
+			'campaigns',
 		);
 
 		/**
@@ -143,6 +144,9 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 					return $this->run_donor_query();
 				case 'donations':
 					return $this->run_donation_query();
+
+				case 'campaigns':
+					return $this->run_campaigns_query();
 			}
 		}
 
@@ -234,6 +238,17 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 			return $results;
 		}
 
+		/*
+		 * Generate a donors query type.
+		 *
+		 * @since  1.7.0
+		*
+		 * @return int
+		 */
+		public function run_campaigns_query() {
+			return count( $this->args['campaigns'] );
+		}
+
 		/**
 		 * Parse arguments.
 		 *
@@ -249,7 +264,9 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 				'status'           => array( 'charitable-completed', 'charitable-preapproved' ),
 				'category'         => null,
 				'tag'              => null,
+				'type'             => null,
 				'include_children' => true,
+				'parent_id'        => array(),
 			);
 
 			$args                = array_merge( $defaults, $args );
@@ -298,13 +315,23 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 				);
 			}
 
-			if ( $args['include_children'] ) {
-				$query_args['post_parent__in'] = $campaigns;
+			if ( ! is_null( $args['type'] ) ) {
+				$query_args['tax_query'][] = array(
+					'taxonomy' => 'campaign_type',
+					'field'    => 'slug',
+					'terms'    => $args['type'],
+				);
+			}
 
+			if ( count( $args['parent_id'] ) ) {
+				$query_args['post_parent__in'] = array_map( 'intval', $args['parent_id'] );
+				unset( $query_args['post__in'] );
+			} elseif ( $args['include_children'] ) {
+				$query_args['post_parent__in'] = $campaigns;
 				unset( $query_args['post__in'] );
 			}
 
-			if ( empty( $campaigns ) && empty( $query_args['tax_query'] ) && ! $args['include_children'] ) {
+			if ( empty( $campaigns ) && empty( $query_args['tax_query'] ) && ! $args['include_children'] && empty( $args['parent_id'] ) ) {
 				return array();
 			}
 
