@@ -11,7 +11,7 @@ use PHPUnit\Runner\AfterTestHook;
  * @copyright Copyright (c) 2020, Studio 164a
  * @license   http://opensource.org/licenses/gpl-2.0.php GNU Public License
  * @since     1.6.0
- * @version   1.6.0
+ * @version   1.7.0
  */
 
 // Exit if accessed directly.
@@ -102,6 +102,7 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 
 				case 'donors':
 				case 'donations':
+				case 'campaigns':
 					if ( ! empty( $this->args['group_by'] ) ) {
 						return $this->table_format( $this->report->get_report( $this->type ) );
 					}
@@ -125,15 +126,19 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 				'date_range'       => '',
 				'category'         => '',
 				'tag'              => '',
+				'type'             => '',
 				'include_children' => true,
 				'group_by'         => '',
+				'parent_id'        => '',
 			);
 
 			$args                     = shortcode_atts( $defaults, $atts, 'charitable_stat' );
 			$args['campaigns']        = strlen( $args['campaigns'] ) ? explode( ',', $args['campaigns'] ) : array();
 			$args['category']         = strlen( $args['category'] ) ? explode( ',', $args['category'] ) : null;
 			$args['tag']              = strlen( $args['tag'] ) ? explode( ',', $args['tag'] ) : null;
+			$args['type']             = strlen( $args['type'] ) ? explode( ',', $args['type'] ) : null;
 			$args['include_children'] = (bool) $args['include_children'];
+			$args['parent_id']        = strlen( $args['parent_id'] ) ? explode( ',', $args['parent_id'] ) : array();
 
 			if ( $args['date_range'] ) {
 				$dates = explode( ',', $args['date_range'] );
@@ -166,8 +171,7 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 		 */
 		private function get_report_args() {
 			$args                = $this->args;
-			$args['report_type'] = in_array( $this->type, array( 'progress', 'total' ) ) ? 'amount' : $this->type;
-
+			$args['report_type'] = in_array( $this->type, array( 'progress', 'total' ), true ) ? 'amount' : $this->type;
 			return $args;
 		}
 
