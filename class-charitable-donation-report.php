@@ -122,13 +122,25 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 				return 0;
 			}
 
+			if ( ! empty( $this->args['date_range'] ) ) {
+				$dates = explode( ',', $this->args['date_range'] );
+				if ( 2 === count( $dates ) ) {
+					$this->args['date_query'] = array(
+						'after'  => $dates[0],
+						'before' => $dates[1],
+					);
+				}
+			}
+
 			switch ( $type ) {
 				case 'amount':
 					return $this->run_amount_query();
 
 				case 'donors':
+					if ( 'campaign' === $this->args['group_by'] ) {
+						return $this->get_donors_grouped_by_campaign();
+					}
 					return $this->run_donor_query();
-
 				case 'donations':
 					return $this->run_donation_query();
 			}
@@ -146,7 +158,11 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 				return charitable_get_table( 'campaign_donations' )->get_total();
 			}
 
-			return charitable_get_table( 'campaign_donations' )->get_campaign_donated_amount( $this->args['campaigns'] );
+			if ( 'campaign' === $this->args['group_by'] ) {
+				return charitable_get_table( 'campaign_donations' )->get_amount_by_campaign_report( $this->args );
+			}
+
+			return charitable_get_table( 'campaign_donations' )->get_amount_report( $this->args );
 		}
 
 		/**
@@ -157,11 +173,13 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 		 * @return int
 		 */
 		private function run_donation_query() {
+
 			$query = new \Charitable_Donations_Query(
 				array(
-					'output'   => 'count',
-					'campaign' => $this->args['campaigns'],
-					'status'   => $this->args['status'],
+					'output'     => 'count',
+					'campaign'   => $this->args['campaigns'],
+					'status'     => $this->args['status'],
+					'date_query' => $this->args['date_query'],
 				)
 			);
 
@@ -173,18 +191,47 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 		 *
 		 * @since  1.6.0
 		 *
-		 * @return int
+		 * @return mixed
 		 */
 		private function run_donor_query() {
-			$query = new \Charitable_Donor_Query(
-				array(
-					'output'   => 'count',
-					'campaign' => $this->args['campaigns'],
-					'status'   => $this->args['status'],
-				)
+
+			$args = array(
+				'output'     => 'count',
+				'campaign'   => $this->args['campaigns'],
+				'status'     => $this->args['status'],
+				'date_query' => $this->args['date_query'],
 			);
 
+			$query = new \Charitable_Donor_Query( $args );
+
 			return $query->count();
+		}
+
+		/**
+		 * Get donor counts grouped by campaign
+		 *
+		 * @since  1.6.57
+		 *
+		 * @return mixed
+		 */
+		private function get_donors_grouped_by_campaign() {
+
+			// Get the campaigns with donors first.
+			$results = array();
+
+			foreach ( $this->args['campaigns'] as $campaign_id ) {
+				$args = array(
+					'output'     => 'count',
+					'campaign'   => $campaign_id,
+					'status'     => $this->args['status'],
+					'date_query' => $this->args['date_query'],
+				);
+
+				$query     = new \Charitable_Donor_Query( $args );
+				$campaign  = charitable_get_campaign( $campaign_id );
+				$results[] = array( $campaign->post_title, $query->count() );
+			}
+			return $results;
 		}
 
 		/**
