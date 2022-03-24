@@ -123,13 +123,13 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 				return 0;
 			}
 
-			if ( ! empty( $this->args['date_range'] ) ) {
-				$dates = explode( ',', $this->args['date_range'] );
-				if ( 2 === count( $dates ) ) {
-					$this->args['date_query'] = array(
-						'after'  => $dates[0],
-						'before' => $dates[1],
-					);
+			if ( ! empty( $this->args['start_date'] ) || ! empty( $this->args['end_date'] ) ) {
+					$this->args['date_query'] = array();
+				if ( ! empty( $this->args['start_date'] ) ) {
+					$this->args['date_query']['after'] = $this->args['start_date'];
+				}
+				if ( ! empty( $this->args['end_date'] ) ) {
+					$this->args['date_query']['before'] = $this->args['end_date'];
 				}
 			}
 
