@@ -101,11 +101,13 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 					return charitable_format_money( $this->report->get_report( 'amount' ) );
 
 				case 'donors':
-				case 'donations':
-				case 'campaigns':
 					if ( ! empty( $this->args['group_by'] ) ) {
 						return $this->table_format( $this->report->get_report( $this->type ) );
 					}
+					return (string) $this->report->get_report( $this->type );
+
+				case 'donations':
+				case 'campaigns':
 					return (string) $this->report->get_report( $this->type );
 			}
 		}
@@ -123,7 +125,8 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 				'display'          => 'total',
 				'campaigns'        => '',
 				'goal'             => false,
-				'date_range'       => '',
+				'date_before'      => '',
+				'date_after'       => '',
 				'category'         => '',
 				'tag'              => '',
 				'type'             => '',
@@ -139,14 +142,8 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 			$args['type']             = strlen( $args['type'] ) ? explode( ',', $args['type'] ) : null;
 			$args['include_children'] = (bool) $args['include_children'];
 			$args['parent_id']        = strlen( $args['parent_id'] ) ? explode( ',', $args['parent_id'] ) : array();
-
-			if ( $args['date_range'] ) {
-				$dates = explode( ',', $args['date_range'] );
-				if ( count( $dates ) === 2 ) {
-					$args['start_date'] = $dates[0];
-					$args['end_date']   = $dates[1];
-				}
-			}
+			$args['end_date']         = strtotime( $args['date_before'] ) ? $args['date_before'] : '';
+			$args['start_date']       = strtotime( $args['date_after'] ) ? $args['date_after'] : '';
 
 			return $args;
 		}
@@ -187,13 +184,10 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 		 */
 
 		private function table_format( $results, $format_money = false ) {
-			if ( ! isset( $results ) || ! count( $results ) ) {
+			if ( ! is_array( $results ) || ! count( $results ) ) {
 				return '';
 			}
 			if ( 2 !== count( $results[0] ) ) {
-				return '';
-			}
-			if ( ! is_numeric( $results[0][1] ) ) {
 				return '';
 			}
 
