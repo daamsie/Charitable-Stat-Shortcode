@@ -72,3 +72,23 @@ Extra parameters added by this plugin are highlighted in bold.
 ```
 [charitable_stat display=total parent_id=123 type=team]
 ```
+
+**Show the stats grouped by a campaign**
+```
+[charitable_stat display=total group_by=campaign]
+```
+
+**Show the stats after a certain date**
+```
+[charitable_stat display=total date_after=2022-02-01]
+```
+
+**Show the stats before a certain date**
+```
+[charitable_stat display=total date_before=2022-02-01]
+```
+
+**Show the stats within a range**
+```
+[charitable_stat display=total date_after=2022-02-01 date_before=2022-03-01]
+```

@@ -1,6 +1,8 @@
 <?php
 namespace CharitableStatShortcodePlugin;
 
+use PHPUnit\Runner\AfterTestHook;
+
 /**
  * Responsible for parsing and displaying the output of the [charitable_stat] shortcode.
  *
@@ -93,9 +95,17 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 					return '<div class="campaign-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' . $percent . '"><span class="bar" style="width:' . $percent . '%;"></span></div>';
 
 				case 'total':
+					if ( ! empty( $this->args['group_by'] ) ) {
+						return $this->table_format( $this->report->get_report( 'amount' ), true );
+					}
 					return charitable_format_money( $this->report->get_report( 'amount' ) );
 
 				case 'donors':
+					if ( ! empty( $this->args['group_by'] ) ) {
+						return $this->table_format( $this->report->get_report( $this->type ) );
+					}
+					return (string) $this->report->get_report( $this->type );
+
 				case 'donations':
 				case 'campaigns':
 					return (string) $this->report->get_report( $this->type );
@@ -115,10 +125,13 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 				'display'          => 'total',
 				'campaigns'        => '',
 				'goal'             => false,
+				'date_before'      => '',
+				'date_after'       => '',
 				'category'         => '',
 				'tag'              => '',
 				'type'             => '',
 				'include_children' => true,
+				'group_by'         => '',
 				'parent_id'        => '',
 			);
 
@@ -129,6 +142,8 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 			$args['type']             = strlen( $args['type'] ) ? explode( ',', $args['type'] ) : null;
 			$args['include_children'] = (bool) $args['include_children'];
 			$args['parent_id']        = strlen( $args['parent_id'] ) ? explode( ',', $args['parent_id'] ) : array();
+			$args['end_date']         = strtotime( $args['date_before'] ) ? $args['date_before'] : '';
+			$args['start_date']       = strtotime( $args['date_after'] ) ? $args['date_after'] : '';
 
 			return $args;
 		}
@@ -154,8 +169,53 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 		private function get_report_args() {
 			$args                = $this->args;
 			$args['report_type'] = in_array( $this->type, array( 'progress', 'total' ), true ) ? 'amount' : $this->type;
-
 			return $args;
+		}
+
+		/**
+		 * Format the results as a table.
+		 *
+		 * @since 1.6.57
+		 *
+		 * @param array $results The results. These are expected to be in an array with the format array[0] = label and array[1] = amount.
+		 * @param bool  $format_money Whether to format the amount as money.
+		 *
+		 * @return string A HTML table with the results.
+		 */
+
+		private function table_format( $results, $format_money = false ) {
+			if ( ! is_array( $results ) || ! count( $results ) ) {
+				return '';
+			}
+			if ( 2 !== count( $results[0] ) ) {
+				return '';
+			}
+
+			// Filtering out any 0 values.
+			$results = array_filter(
+				$results,
+				function ( $result ) {
+					return 0 != $result[1];
+				}
+			);
+
+			// Sorting in descending value.
+			usort(
+				$results,
+				function ( $item1, $item2 ) {
+					return $item2[1] <=> $item1[1];
+				}
+			);
+
+			$html = '<table>';
+			foreach ( $results as $result ) {
+				if ( $format_money ) {
+					$result[1] = charitable_format_money( $result[1] );
+				}
+				$html = $html . '<tr><td>' . $result[0] . '</td><td>' . $result[1] . '</td></tr>';
+			}
+			$html = $html . '</table>';
+			return $html;
 		}
 	}
 
