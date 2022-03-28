@@ -78,14 +78,14 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 		 * @return string
 		 */
 		public function get_query_result() {
+			/* A goal is necessary for the progress report. */
+			if ( 'progress' === $this->type && ! $this->args['goal'] ) {
+				$this->type = 'total';
+			}
+
 			switch ( $this->type ) {
 				case 'progress':
-					$total = $this->report->get_report( 'amount' );
-
-					if ( ! $this->args['goal'] ) {
-						return charitable_format_money( $total );
-					}
-
+					$total   = $this->report->get_report( 'amount' );
 					$goal    = charitable_sanitize_amount( $this->args['goal'], false );
 					$total   = charitable_sanitize_amount( $total, true );
 					$percent = ( $total / $goal ) * 100;
@@ -93,7 +93,13 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 					return '<div class="campaign-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' . $percent . '"><span class="bar" style="width:' . $percent . '%;"></span></div>';
 
 				case 'total':
-					return charitable_format_money( $this->report->get_report( 'amount' ) );
+					$amount = $this->report->get_report( 'amount' );
+
+					if ( $this->args['formatted'] ) {
+						return charitable_format_money( $amount );
+					}
+
+					return charitable_get_currency_helper()->cast_to_decimal_format( $amount );
 
 				case 'donors':
 				case 'donations':
@@ -120,6 +126,7 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 				'type'             => '',
 				'include_children' => true,
 				'parent_id'        => '',
+				'formatted'        => true,
 			);
 
 			$args                     = shortcode_atts( $defaults, $atts, 'charitable_stat' );
@@ -129,6 +136,7 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 			$args['type']             = strlen( $args['type'] ) ? explode( ',', $args['type'] ) : null;
 			$args['include_children'] = (bool) $args['include_children'];
 			$args['parent_id']        = strlen( $args['parent_id'] ) ? explode( ',', $args['parent_id'] ) : array();
+			$args['formatted']        = (bool) $args['formatted'];
 
 			return $args;
 		}
