@@ -101,11 +101,13 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 						return $this->table_format( $amount, true );
 					}
 
+					$amount = charitable_format_money( $amount );
+
 					if ( $this->args['formatted'] ) {
-						return charitable_format_money( $amount );
+						return $amount;
 					}
 
-					return charitable_get_currency_helper()->cast_to_decimal_format( $amount );
+					return charitable_sanitize_amount( $amount );
 
 				case 'donors':
 					if ( ! empty( $this->args['group_by'] ) ) {
