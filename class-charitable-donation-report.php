@@ -140,9 +140,16 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 				case 'donors':
 					if ( 'campaign' === $this->args['group_by'] ) {
 						return $this->get_donors_grouped_by_campaign();
+					} elseif ( 'category' === $this->args['group_by'] ) {
+						return $this->get_stat_by_category_report( 'donors', $this->args );
 					}
 					return $this->run_donor_query();
 				case 'donations':
+					if ( 'campaign' === $this->args['group_by'] ) {
+						return $this->get_donations_grouped_by_campaign();
+					} elseif ( 'category' === $this->args['group_by'] ) {
+						return $this->get_stat_by_category_report( 'donations', $this->args );
+					}
 					return $this->run_donation_query();
 
 				case 'campaigns':
@@ -164,9 +171,70 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 
 			if ( 'campaign' === $this->args['group_by'] ) {
 				return charitable_get_table( 'campaign_donations' )->get_amount_by_campaign_report( $this->args );
+			} elseif ( 'category' === $this->args['group_by'] ) {
+				return $this->get_stat_by_category_report( 'amount', $this->args );
 			}
 
 			return charitable_get_table( 'campaign_donations' )->get_amount_report( $this->args );
+		}
+
+
+		/**
+		 * Return a total amount donated, grouped by category.
+		 * Created for Charitable-Stats-Shortcode.
+		 *
+		 * @since  1.6.61
+		 *
+		 * @param  array   $args Query arguments.
+		 * @param  boolean $sanitize Whether to sanitize the amounts.
+		 *
+		 * @return array An array of amounts and category names
+		 */
+		public function get_stat_by_category_report( $stat_type, $args, $sanitize = true ) {
+			global $wpdb;
+			$table = charitable_get_table( 'campaign_donations' );
+
+			list( $sql_where, $parameters ) = $table->get_report_sql_where_clause( $args );
+
+			$category_in = '';
+			if ( count( $args['category'] ) > 0 ) {
+				list( $categories_in, $categories_parameters ) = $this->get_category_in_clause_params( $args['category'] );
+				$parameters                                    = array_merge( $categories_parameters, $parameters );
+				$category_in                                   = "AND t.slug IN ($categories_in)";
+			}
+
+			$sql_total_column = 'COALESCE( SUM(amount), 0 )';
+			if ( 'donors' === $stat_type ) {
+				$sql_total_column = 'count( distinct( cd.donor_id ) )';
+			} elseif ( 'donations' === $stat_type ) {
+				$sql_total_column = 'count( distinct( cd.campaign_donation_id ) )';
+			}
+
+			/* Get the total */
+			$sql = "SELECT t.name, $sql_total_column as total
+                    FROM $table->table_name cd
+                    INNER JOIN $wpdb->posts p
+                    ON p.ID = cd.donation_id
+										LEFT JOIN $wpdb->term_relationships r ON
+                    r.object_id = cd.campaign_id
+                    LEFT JOIN $wpdb->terms t ON  
+                    t.term_id = r.term_taxonomy_id $category_in
+                    INNER JOIN $wpdb->term_taxonomy wtt ON
+                    wtt.term_id = t.term_id AND wtt.taxonomy = 'campaign_category'
+                    $sql_where
+										GROUP BY t.term_id, t.name";
+
+			if ( ! empty( $parameters ) ) {
+				$sql = $wpdb->prepare( $sql, $parameters );
+			}
+
+			$results = $wpdb->get_results( $sql, 'ARRAY_N' );
+
+			if ( \Charitable_Currency::get_instance()->is_comma_decimal() && $sanitize ) {
+				$results = array_map( array( $this, 'sanitize_grouped_amounts' ), $results );
+			}
+
+			return $results;
 		}
 
 		/**
@@ -238,6 +306,32 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 			return $results;
 		}
 
+		/**
+		 * Get donation counts grouped by campaign
+		 *
+		 * @since  1.6.61
+		 *
+		 * @return mixed
+		 */
+		private function get_donations_grouped_by_campaign() {
+
+			$results = array();
+
+			foreach ( $this->args['campaigns'] as $campaign_id ) {
+				$args = array(
+					'output'     => 'count',
+					'campaign'   => $campaign_id,
+					'status'     => $this->args['status'],
+					'date_query' => $this->args['date_query'],
+				);
+
+				$query     = new \Charitable_Donations_Query( $args );
+				$campaign  = charitable_get_campaign( $campaign_id );
+				$results[] = array( $campaign->post_title, $query->count() );
+			}
+			return $results;
+		}
+
 		/*
 		 * Generate a donors query type.
 		 *
@@ -247,6 +341,25 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 		 */
 		public function run_campaigns_query() {
 			return count( $this->args['campaigns'] );
+		}
+
+		/**
+		 * Returns an array containing the placeholders and sanitized parameters for a list of categores to use in an IN clause.
+		 *
+		 * @since  1.6.61
+		 *
+		 * @param  int|int[] $list List of elements.
+		 * @return array
+		 */
+		private function get_category_in_clause_params( $list ) {
+			if ( ! is_array( $list ) ) {
+				$list = array( $list );
+			}
+
+			/* Filter out any non-string values */
+			$list = array_filter( $list, 'is_string' );
+
+			return array( charitable_get_query_placeholders( count( $list ), '%s' ), $list );
 		}
 
 		/**
@@ -379,6 +492,19 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 			}
 
 			return array( $report_type );
+		}
+
+		/**
+		 * Sanitize amounts for grouped queries
+		 *
+		 * @since  1.6.61
+		 *
+		 * @param  array $item[0] in array is a label, item[1] is the amount. We need to sanitize the amount.
+		 * @return object
+		 */
+		private function sanitize_grouped_amounts( $item ) {
+			$item[1] = \Charitable_Currency::get_instance()->sanitize_database_amount( $item[1] );
+			return $item;
 		}
 	}
 

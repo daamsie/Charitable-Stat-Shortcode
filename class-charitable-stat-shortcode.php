@@ -109,13 +109,13 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 
 					return charitable_sanitize_amount( $amount );
 
+				case 'donations':
 				case 'donors':
 					if ( ! empty( $this->args['group_by'] ) ) {
 						return $this->table_format( $this->report->get_report( $this->type ) );
 					}
 					return (string) $this->report->get_report( $this->type );
 
-				case 'donations':
 				case 'campaigns':
 					return (string) $this->report->get_report( $this->type );
 			}
@@ -214,7 +214,7 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Stat_Shortcode' ) ) :
 			usort(
 				$results,
 				function ( $item1, $item2 ) {
-					return $item2[1] <=> $item1[1];
+					return charitable_sanitize_amount( $item2[1] ) <=> charitable_sanitize_amount( $item1[1] );
 				}
 			);
 
