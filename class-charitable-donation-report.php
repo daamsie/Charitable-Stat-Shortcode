@@ -124,7 +124,7 @@ if ( ! class_exists( __NAMESPACE__ . '\Charitable_Donation_Report' ) ) :
 			}
 
 			if ( ! empty( $this->args['start_date'] ) || ! empty( $this->args['end_date'] ) ) {
-					$this->args['date_query'] = array();
+				$this->args['date_query'] = array( 'inclusive' => true );
 				if ( ! empty( $this->args['start_date'] ) ) {
 					$this->args['date_query']['after'] = $this->args['start_date'];
 				}

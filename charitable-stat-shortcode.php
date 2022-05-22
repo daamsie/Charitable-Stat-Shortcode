@@ -41,3 +41,21 @@ add_action(
 	},
 	1
 );
+
+/**
+ * Register the script.
+*/
+
+$path = plugin_dir_url( __FILE__ );
+
+wp_register_script(
+	'charitable-stat-shortcode',
+	plugin_dir_url( __FILE__ ) . 'assets/js/charitable-stat-shortcode.js',
+	array(),
+	false,
+	true
+);
+
+// Enqueue the script.
+wp_enqueue_script( 'charitable-stat-shortcode' );
+
